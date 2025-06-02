@@ -1,13 +1,33 @@
-from django.shortcuts import render
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 from rest_framework.decorators import api_view
-# Create your views here.
-
+from .models import Order
 
 ACCEPTED_TOKEN = ('omni_pretest_token')
 
 
 @api_view(['POST'])
 def import_order(request):
-    # Add your code here
-    return HttpResponseBadRequest()
+    token = request.data.get('token')
+
+    if token != ACCEPTED_TOKEN:
+        return HttpResponseBadRequest("Invalid Access Token")
+    
+    # check if order_number and total_price exists
+    if not request.data.get('order_number'):
+        return HttpResponseBadRequest("Order number is required")
+    if not isinstance(request.data.get('order_number'), int):
+        return HttpResponseBadRequest("Order number must be an integer")
+    if not request.data.get('total_price'):
+        return HttpResponseBadRequest("Total price is required")
+    if not isinstance(request.data.get('total_price'), int):
+        return HttpResponseBadRequest("Total price must be an integer")
+
+    order_number = request.data.get('order_number')
+    total_price = request.data.get('total_price')
+
+    order = Order.objects.create(
+        order_number=order_number,
+        total_price=total_price,
+    )
+
+    return JsonResponse({"message": "Order imported successfully", "order_id": order.id})
