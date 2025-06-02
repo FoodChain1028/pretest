@@ -1,8 +1,6 @@
 from django.db import models
 
-
-# Create your models here.
 class Order(models.Model):
-    # Add your model here
-    pass
-
+    order_number = models.IntegerField()
+    total_price = models.IntegerField()
+    created_time = models.DateTimeField(auto_now_add=True)
