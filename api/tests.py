@@ -23,19 +23,17 @@ class OrderTestCase(APITestCase):
             'total_price': 100,
         }
     
-    # def tearDown(self):
-    #     User.objects.all().delete()
-    #     Order.objects.all().delete()
     # make sure the code coverage is at least 90%
     # 1. test_no_token
     # 2. test_invalid_token
     # 3. test_no_user_id
-    # 4. test_invalid_user_id
-    # 5. test_no_order_number
-    # 6. test_order_number_invalid_type
-    # 7. test_no_total_price
-    # 8. test_total_price_invalid_type
-    # 9. test_create_order
+    # 4. test_user_id_invalid_type
+    # 5. test_invalid_user_id
+    # 6. test_no_order_number
+    # 7. test_order_number_invalid_type
+    # 8. test_no_total_price
+    # 9. test_total_price_invalid_type
+    # 10. test_create_order
 
     def test_no_token(self):
         self.data.pop('token')
