@@ -3,7 +3,7 @@ from django.db import models
 class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=1000)
-    price = models.DecimalField(max_digits=10, decimal_places=2) # for NTD price this is not needed
+    price = models.IntegerField()
 
 class Order(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True)
