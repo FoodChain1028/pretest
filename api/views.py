@@ -28,14 +28,15 @@ def import_order(request):
     if not request.data.get('total_price'):
         return JsonResponse({"message": "Total price is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not isinstance(request.data.get('order_number'), int):
-        return JsonResponse({"message": "Order number must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        order_number = int(request.data.get('order_number'))
+    except (TypeError, ValueError):
+        return JsonResponse({"message": "Order number must be an number"}, status=status.HTTP_400_BAD_REQUEST)
 
-    if not isinstance(request.data.get('total_price'), int):
-        return JsonResponse({"message": "Total price must be an integer"}, status=status.HTTP_400_BAD_REQUEST)
-
-    order_number = request.data.get('order_number')
-    total_price = request.data.get('total_price')
+    try:
+        total_price = int(request.data.get('total_price'))
+    except (TypeError, ValueError):
+        return JsonResponse({"message": "Total price must be an number"}, status=status.HTTP_400_BAD_REQUEST)
 
     order = Order.objects.create(
         user=user,
