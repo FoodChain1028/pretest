@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 from rest_framework.test import APITestCase
 from rest_framework import status
 from .models import Order
@@ -8,23 +9,35 @@ ENDPOINT = 'http://127.0.0.1:8008/'
 
 class OrderTestCase(APITestCase):
     def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='testuser@example.com',
+            password='testpass'
+        )
+
         self.url = f"{ENDPOINT}api/import-order/"
         self.data = {
             'token': 'omni_pretest_token',
+            'user_id': self.user.id,
             'order_number': 123,
             'total_price': 100,
         }
+    
+    # def tearDown(self):
+    #     User.objects.all().delete()
+    #     Order.objects.all().delete()
     # make sure the code coverage is at least 90%
     # 1. test_no_token
     # 2. test_invalid_token
-    # 3. test_no_order_number
-    # 4. test_order_number_invalid_type
-    # 5. test_no_total_price
-    # 6. test_total_price_invalid_type
-    # 7. test_create_order
+    # 3. test_no_user_id
+    # 4. test_invalid_user_id
+    # 5. test_no_order_number
+    # 6. test_order_number_invalid_type
+    # 7. test_no_total_price
+    # 8. test_total_price_invalid_type
+    # 9. test_create_order
 
     def test_no_token(self):
-        self.setUp()
         self.data.pop('token')
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -36,7 +49,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.first(), None)
 
     def test_invalid_token(self):
-        self.setUp()
         self.data['token'] = 'invalid_token'
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -47,8 +59,40 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.count(), 0)
         self.assertEqual(Order.objects.first(), None)
 
+    def test_no_user_id(self):
+        self.data.pop('user_id')
+        res = self.client.post(self.url, self.data, format='json')
+        # response
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.json()['message'], 'User ID is required')
+
+        # database
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(Order.objects.first(), None)
+
+    def test_user_id_invalid_type(self):
+        self.data['user_id'] = 'invalid_user_id'
+        res = self.client.post(self.url, self.data, format='json')
+        # response
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.json()['message'], 'User ID must be an number')
+
+        # database
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(Order.objects.first(), None)
+
+    def test_invalid_user_id(self):
+        self.data['user_id'] = '131313'
+        res = self.client.post(self.url, self.data, format='json')
+        # response
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.json()['message'], 'Invalid user ID')
+
+        # database
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(Order.objects.first(), None)
+
     def test_no_order_number(self):
-        self.setUp()
         self.data.pop('order_number')
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -60,7 +104,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.first(), None)
     
     def test_order_number_invalid_type(self):
-        self.setUp()
         self.data['order_number'] = 'invalid_order_number'
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -72,7 +115,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.first(), None)
     
     def test_no_total_price(self):
-        self.setUp()
         self.data.pop('total_price')
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -84,7 +126,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.first(), None)
 
     def test_total_price_invalid_type(self):
-        self.setUp()
         self.data['total_price'] = 'invalid_total_price'
         res = self.client.post(self.url, self.data, format='json')
         # response
@@ -96,7 +137,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(Order.objects.first(), None)
 
     def test_create_order(self):
-        self.setUp()
         res = self.client.post(self.url, self.data, format='json')
         # response
         self.assertEqual(res.status_code, 200)

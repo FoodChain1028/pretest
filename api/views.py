@@ -1,4 +1,5 @@
-from django.http import HttpResponseBadRequest, JsonResponse
+from django.contrib.auth.models import User
+from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import Order
@@ -10,12 +11,27 @@ ACCEPTED_TOKEN = ('omni_pretest_token')
 def import_order(request):
     token = request.data.get('token')
 
+    # check validity of token
     if not token:
         return JsonResponse({"message": "Token is required"}, status=status.HTTP_401_UNAUTHORIZED)
     
     if token != ACCEPTED_TOKEN:
         return JsonResponse({"message": "Invalid Access Token"}, status=status.HTTP_401_UNAUTHORIZED)
-    
+
+    # check validity of user_id    
+    user_id = request.data.get('user_id')
+    if not user_id:
+        return JsonResponse({"message": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user_id = int(user_id)
+    except (TypeError, ValueError):
+        return JsonResponse({"message": "User ID must be an number"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"message": "Invalid user ID"}, status=status.HTTP_400_BAD_REQUEST)
+
     # check if order_number and total_price exists
     if not request.data.get('order_number'):
         return JsonResponse({"message": "Order number is required"}, status=status.HTTP_400_BAD_REQUEST)
@@ -32,6 +48,7 @@ def import_order(request):
     total_price = request.data.get('total_price')
 
     order = Order.objects.create(
+        user=user,
         order_number=order_number,
         total_price=total_price,
     )
