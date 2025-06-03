@@ -3,21 +3,11 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import Order
-
-ACCEPTED_TOKEN = ('omni_pretest_token')
-
+from .decorators import require_access_token
 
 @api_view(['POST'])
+@require_access_token
 def import_order(request):
-    token = request.data.get('token')
-
-    # check validity of token
-    if not token:
-        return JsonResponse({"message": "Token is required"}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    if token != ACCEPTED_TOKEN:
-        return JsonResponse({"message": "Invalid Access Token"}, status=status.HTTP_401_UNAUTHORIZED)
-
     # check validity of user_id    
     user_id = request.data.get('user_id')
     if not user_id:
